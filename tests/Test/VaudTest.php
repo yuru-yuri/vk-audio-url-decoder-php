@@ -20,7 +20,7 @@ class VaudTest extends \TestCase
         foreach ($this->urls as $url)
         {
             $_url = $decoder->decode($url);
-            $this->assertTrue($url, $_url);
+            $this->assertFalse($url === $_url);
         }
     }
 }
