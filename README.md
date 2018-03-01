@@ -2,6 +2,10 @@
 
 ## Usage:
 
+```
+composer require yuru-yuri/vaud
+```
+
 ```php
 <?php
 use YuruYuri\Vaud\Vaud;
