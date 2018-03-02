@@ -4,7 +4,7 @@
 [![GitHub issues](https://img.shields.io/github/issues/yuru-yuri/vk-audio-url-decoder-php.svg)](https://github.com/yuru-yuri/vk-audio-url-decoder-php/issues)
 [![Packagist](https://img.shields.io/packagist/dt/yuru-yuri/vaud.svg)](https://packagist.org/packages/yuru-yuri/vaud)
 [![Packagist](https://img.shields.io/packagist/v/yuru-yuri/vaud.svg)](https://packagist.org/packages/yuru-yuri/vaud)
-[![PHP from Packagist](https://img.shields.io/packagist/php-v/symfony/symfony.svg)](https://packagist.org/packages/yuru-yuri/vaud)
+[![PHP from Packagist](https://img.shields.io/packagist/php-v/yuru-yuri/vaud.svg)](https://packagist.org/packages/yuru-yuri/vaud)
 
 
 [![Maintainability](https://api.codeclimate.com/v1/badges/cec6b6ff469eed15b460/maintainability)](https://codeclimate.com/github/yuru-yuri/vk-audio-url-decoder-php/maintainability)
