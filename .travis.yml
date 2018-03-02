@@ -13,6 +13,7 @@ before_script:
 - chmod +x ./cc-test-reporter
 - chmod +x ./after_script.sh
 - ./cc-test-reporter before-build
+- mkdir build/logs -p
 
 script:
 - phpunit --coverage-text --coverage-clover build/logs/clover.xml
