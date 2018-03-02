@@ -23,7 +23,7 @@ class Protect2Public extends Vaud
 }
 
 
-class VaudTest extends \PHPUnit\Framework\TestCase
+class VaudTest extends \TestCase
 {
     protected $urls = [
         'https://m.vk.com/mp3/audio_api_unavailable.mp3?extra=C1LOz3q4mxHUrZHjte5xn3zzmO1hzMGXyxzeqZjPCZjdt3uXlwn6nhn5lvLJm3m9yJHMAhrYDLffvLnkof9boc9Tyu5LAej4yMrQtf9kwv8Vv29ozenVyuCOAOXPnI1Owc54lM9kl2iYl3runZuYvNzIqY12q3PJDgfbwgP6A2vFng9JoNfWtNjHwLHKzwuWn3vbyvHtEKu/z3fvDhbmsfvPAc5NmxvLngLeq2vSwNjlowfYtJbMyMjiyvDnr3jUDvLWwNLvwMDVsxvNnG#AqSZnZe',
