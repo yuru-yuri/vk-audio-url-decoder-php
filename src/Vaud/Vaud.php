@@ -10,6 +10,11 @@ class Vaud
 
     public function __construct(int $uid)
     {
+        if (!$uid)
+        {
+            throw new \InvalidArgumentException('Not received uid (required > 0)');
+        }
+
         $this->uid = $uid;
     }
 
@@ -17,15 +22,9 @@ class Vaud
      * @param string $url
      *
      * @return string
-     * @throws \InvalidArgumentException
      */
     public function decode(string $url): string
     {
-        if (!$this->uid)
-        {
-            throw new \InvalidArgumentException('Not received (int)uid');
-        }
-
         if (\strpos($url, 'audio_api_unavailable') !== false)
         {
             $t = \explode('#', \explode('?extra=', $url)[1]);
@@ -42,7 +41,7 @@ class Vaud
             {
                 --$n_len;
                 $s = \explode(\chr(11), $n[$n_len]);
-                [$a, $s] = $this->splice($s, 0, 1, $t);
+                list($a, $s) = $this->splice($s, 0, 1, $t);
                 $a = $a[0];
                 if (!\method_exists($this, $a))
                 {

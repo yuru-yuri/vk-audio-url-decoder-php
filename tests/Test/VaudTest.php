@@ -65,6 +65,20 @@ class VaudTest extends \TestCase
         $this->assertTrue($result);
     }
 
+    public function test_attr1()
+    {
+        $result = false;
+        try
+        {
+            new Vaud(0);
+        }
+        catch (\InvalidArgumentException $e) {
+            $result = true;
+        }
+
+        $this->assertTrue($result);
+    }
+
     public function test_r()
     {
         $decoder = new Protect2Public(1);
