@@ -4,6 +4,7 @@ namespace Test;
 
 use YuruYuri\Vaud\Vaud;
 
+
 class Protect2Public extends Vaud
 {
     public function v($e)
