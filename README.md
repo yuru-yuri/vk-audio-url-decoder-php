@@ -1,4 +1,8 @@
-# VK audio url decoder
+# VK audio url decoder [![Build Status](https://travis-ci.org/yuru-yuri/vk-audio-url-decoder-php.svg?branch=master)](https://travis-ci.org/yuru-yuri/vk-audio-url-decoder-php)
+
+[![GitHub license](https://img.shields.io/github/license/yuru-yuri/vk-audio-url-decoder-php.svg)](https://github.com/yuru-yuri/vk-audio-url-decoder-php/blob/master/LICENSE)
+[![GitHub issues](https://img.shields.io/github/issues/yuru-yuri/vk-audio-url-decoder-php.svg)](https://github.com/yuru-yuri/vk-audio-url-decoder-php/issues)
+[![Packagist](https://img.shields.io/packagist/dt/yuru-yuri/vaud.svg)](https://packagist.org/packages/yuru-yuri/vaud)
 
 ## Usage:
 
