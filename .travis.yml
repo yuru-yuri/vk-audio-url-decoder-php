@@ -2,21 +2,25 @@ language: php
 php:
   - '7.1'
   - '7.2'
+  - 'nightly'
 
 env:
   global:
-  - CC_TEST_REPORTER_ID=5179d31333905598e713340fc59f5a7684e5deef88ba031fd1726f01955aa55f
+    - CC_TEST_REPORTER_ID=5179d31333905598e713340fc59f5a7684e5deef88ba031fd1726f01955aa55f
 
 before_script:
-- composer install
-- curl -L https://codeclimate.com/downloads/test-reporter/test-reporter-latest-linux-amd64 > ./cc-test-reporter
-- chmod +x ./cc-test-reporter
-- chmod +x ./after_script.sh
-- ./cc-test-reporter before-build
-- mkdir build/logs -p
+  - composer install
+  - curl -L https://codeclimate.com/downloads/test-reporter/test-reporter-latest-linux-amd64 > ./cc-test-reporter
+  - chmod +x ./cc-test-reporter
+  - chmod +x ./after_script.sh
+  - ./cc-test-reporter before-build
+  - mkdir build/logs -p
 
 script:
-- phpunit --coverage-text --coverage-clover build/logs/clover.xml
+  - phpunit --coverage-text --coverage-clover build/logs/clover.xml
 
 after_script:
-- ./after_script.sh
+  - ./after_script.sh
+
+allow_failures:
+  - php: nightly
