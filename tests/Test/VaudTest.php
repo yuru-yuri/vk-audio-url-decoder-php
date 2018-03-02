@@ -4,8 +4,26 @@ namespace Test;
 
 use YuruYuri\Vaud\Vaud;
 
+class Protect2Public extends Vaud
+{
+    public function v($e)
+    {
+        return parent::v($e);
+    }
 
-class VaudTest extends \TestCase
+    public function r($e, $t)
+    {
+        return parent::r($e, $t);
+    }
+
+    public function x($e, $t)
+    {
+        return parent::x($e, $t);
+    }
+}
+
+
+class VaudTest extends \PHPUnit\Framework\TestCase
 {
     protected $urls = [
         'https://m.vk.com/mp3/audio_api_unavailable.mp3?extra=C1LOz3q4mxHUrZHjte5xn3zzmO1hzMGXyxzeqZjPCZjdt3uXlwn6nhn5lvLJm3m9yJHMAhrYDLffvLnkof9boc9Tyu5LAej4yMrQtf9kwv8Vv29ozenVyuCOAOXPnI1Owc54lM9kl2iYl3runZuYvNzIqY12q3PJDgfbwgP6A2vFng9JoNfWtNjHwLHKzwuWn3vbyvHtEKu/z3fvDhbmsfvPAc5NmxvLngLeq2vSwNjlowfYtJbMyMjiyvDnr3jUDvLWwNLvwMDVsxvNnG#AqSZnZe',
@@ -22,5 +40,48 @@ class VaudTest extends \TestCase
             $_url = $decoder->decode($url);
             $this->assertFalse($url === $_url);
         }
+    }
+
+    public function test_url1()
+    {
+        $decoder = new Vaud($this->uid);
+        $decoded_url = $decoder->decode($this->urls[0] . 'abcdef');  # O_o
+        $this->assertFalse(false === \strpos($decoded_url, 'audio_api_unavailable'));
+    }
+
+    public function test_url2()
+    {
+        $decoder = new Vaud($this->uid);
+
+        $result = false;
+        try
+        {
+            $decoder->decode(\substr($this->urls[0], 0, -5));
+        }
+        catch (\ArgumentCountError $e) {
+            $result = true;
+        }
+
+        $this->assertTrue($result);
+    }
+
+    public function test_r()
+    {
+        $decoder = new Protect2Public(1);
+        $this->assertTrue('Y++69:PP6R9+VSZ4.T53P' === $decoder->r('https://pastebin.com/', 22));
+    }
+
+    public function test_v()
+    {
+        $decoder = new Protect2Public(1);
+        $this->assertTrue('abc' === $decoder->v('cba'));
+    }
+
+    public function test_x()
+    {
+        $decoder = new Protect2Public(1);
+        $p = $decoder->x('https://pastebin.com/', '22');
+        $e = base64_decode('WkZGQkEIHR1CU0FGV1BbXBxRXV8d');
+        $this->assertTrue($p === $e);
     }
 }

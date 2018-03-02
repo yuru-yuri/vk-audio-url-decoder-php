@@ -6,13 +6,19 @@ namespace YuruYuri\Vaud;
 class Vaud
 {
     protected $uid = null;
-    private $n = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMN0PQRSTUVWXYZO123456789+/=';
+    private   $n = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMN0PQRSTUVWXYZO123456789+/=';
 
     public function __construct(int $uid)
     {
         $this->uid = $uid;
     }
 
+    /**
+     * @param string $url
+     *
+     * @return string
+     * @throws \InvalidArgumentException
+     */
     public function decode(string $url): string
     {
         if (!$this->uid)
@@ -20,78 +26,69 @@ class Vaud
             throw new \InvalidArgumentException('Not received (int)uid');
         }
 
-        if (strpos($url, 'audio_api_unavailable') !== false)
+        if (\strpos($url, 'audio_api_unavailable') !== false)
         {
-            $t = explode('#', explode('?extra=', $url)[1]);
-            $n = $t[1] == '' ? '' : $this->decode_r($t[1]);
+            $t = \explode('#', \explode('?extra=', $url)[1]);
+            $n = $t[1] === '' ? '' : $this->decode_r($t[1]);
             $t = $this->decode_r($t[0]);
-            if (!$t || !is_string($t)) {
-                var_dump(__LINE__);
+            if (!$t || !\is_string($t))
+            {
                 return $url;
             }
-            $n = $n ? explode(chr(9), $n) : [];
+            $n = $n ? \explode(\chr(9), $n) : [];
 
-            $n_len = count($n);
-            while ($n_len) {
-                $n_len -= 1;
-                $s = explode(chr(11), $n[$n_len]);
-                $s = $this->splice($s, 0, 1, $t);
-                $a = $s[0][0];
-                $s = $s[1];
-                if (!method_exists($this, $a)) {
-                    var_dump(__LINE__);
+            $n_len = \count($n);
+            while ($n_len)
+            {
+                --$n_len;
+                $s = \explode(\chr(11), $n[$n_len]);
+                [$a, $s] = $this->splice($s, 0, 1, $t);
+                $a = $a[0];
+                if (!\method_exists($this, $a))
+                {
                     return $url;
                 }
                 $t = $this->{$a}(...$s);
             }
 
-            if(substr($t, 0, 4) == 'http')
+            if (0 === \strpos($t, 'http'))
             {
                 return $t;
             }
-            var_dump(__LINE__);
         }
-        var_dump(__LINE__);
 
         return $url;
     }
 
     protected function splice($a, $b, $c, ...$d)
     {
-        if (is_array($b)) {
+        if (\is_array($b))
+        {
             return $this->splice($a, $b[0], $b[1], array_merge([$c] + $d));
         }
 
         $cash = $a;
-        $a = array_slice($a, $b, $c);
-        if (count($d))
-        {
-            $cash = array_merge(
-                array_slice($cash, 0, $b),
-                $d,
-                array_slice($cash, $c + $b)
-            );
-        }
-        else
-        {
-            $cash = array_merge(
-                array_slice($cash, 0, $b),
-                array_slice($cash, $c + $b)
-            );
-        }
+        $a = \array_slice($a, $b, $c);
+        $cash = \array_merge(
+            \array_slice($cash, 0, $b),
+            $d,
+            \array_slice($cash, $c + $b)
+        );
 
         return [$a, $cash];
     }
 
     protected function decode_s($e, $t)
     {
-        $e_len = strlen($e);
+        $e_len = \strlen($e);
         $i = [];
-        if ($e_len) {
+        if ($e_len)
+        {
             $o = $e_len;
-            $t = abs($t);
-            while ($o) {
-                $o -= 1;
+            $t = \abs($t);
+            while ($o)
+            {
+                --$o;
                 $t = ($e_len * ($o + 1) ^ (int)$t + $o) % $e_len;
                 $i[$o] = $t;
             }
@@ -102,72 +99,79 @@ class Vaud
 
     protected function decode_r($e)
     {
-        if (!$e or (!strlen($e) % 4) == 1) {
+        if (!$e || (\strlen($e) % 4) === 1)
+        {
             return false;
         }
         $o = 0;
         $a = 0;
         $t = 0;
         $r = '';
-        $e_len = strlen($e);
+        $e_len = \strlen($e);
         while ($a < $e_len)
         {
-            $i = strpos($this->n, $e[$a]);
-            if (false !== $i) {
-                $t = $o % 4 ? 64 * $t + $i : $i;
-                $o += 1;
-                if (($o - 1) % 4) {
-                    $c = chr(255 & $t >> (-2 * $o & 6));
-                    if ($c != "\x00") {
+            $i = \strpos($this->n, $e[$a]);
+            if (false !== $i)
+            {
+                $t = ($o % 4) ? 64 * $t + $i : $i;
+                ++$o;
+                if (($o - 1) % 4)
+                {
+                    $c = \chr(255 & $t >> (-2 * $o & 6));
+                    if ($c !== "\x00")
+                    {
                         $r .= $c;
                     }
                 }
             }
-            $a += 1;
+            ++$a;
         }
+
         return $r;
     }
 
     protected function v($e)
     {
-        $e = array_reverse(str_split($e));
+        $e = \array_reverse(\str_split($e));
 
-        return implode('', $e);
+        return \implode('', $e);
     }
 
     protected function r($e, $t)
     {
-        $e = str_split($e);
+        $e = \str_split($e);
         $o = $this->n . $this->n;
-        $a = count($e) - 1;
+        $a = \count($e);
 
         while ($a)
         {
-            $i = strpos($o, $e[$a]);
-            if(false !== $i) {
-                $e[$a] = substr($o, $i - $t, 1);
+            --$a;
+            $i = \strpos($o, $e[$a]);
+            if (false !== $i)
+            {
+                $e[$a] = $o[$i - $t];
             }
-            $a -= 1;
         }
 
-        return implode($e);
+        return \implode($e);
     }
 
     protected function s($e, $t)
     {
-        $e_len = strlen($e);
-        if ($e_len) {
+        $e_len = \strlen($e);
+        if ($e_len)
+        {
             $i = $this->decode_s($e, $t);
             $o = 1;
-            $e = str_split($e);
+            $e = \str_split($e);
             while ($o < $e_len)
             {
                 $_ = $this->splice($e, $i[$e_len - 1 - $o], 1, $e[$o]);
                 $e = $_[1];
                 $e[$o] = $_[0][0];
-                $o += 1;
+                ++$o;
             }
-            $e = implode('', $e);
+            $e = \implode('', $e);
         }
 
         return $e;
@@ -181,9 +185,13 @@ class Vaud
     protected function x($e, $t)
     {
         $data = '';
-        foreach ($e as $i) {
-            $data .= chr(ord($i[0]) ^ ord($t[0]));
+        $t =\ord($t[0]);
+        $e = \str_split($e);
+        foreach ($e as $i)
+        {
+            $data .= \chr(\ord($i[0]) ^ $t);
         }
+
         return $data;
     }
 }
