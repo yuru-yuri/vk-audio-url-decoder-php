@@ -41,7 +41,7 @@ class Vaud
             {
                 --$n_len;
                 $s = \explode(\chr(11), $n[$n_len]);
-                list($a, $s) = $this->splice($s, 0, 1, $t);
+                [$a, $s] = $this->splice($s, 0, 1, $t);
                 $a = $a[0];
                 if (!\method_exists($this, $a))
                 {

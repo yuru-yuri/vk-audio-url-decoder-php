@@ -67,11 +67,10 @@ class AlAudio
             'User-Agent' => $this->user_agent,
             'Accept-Language' => 'ru-RU,ru;q=0.8,en-US;q=0.5,en;q=0.3',
             'X-Requested-With' => 'XMLHttpRequest',
-            'Accept' => '*/*',
             'Connection' => 'keep-alive',
             'Pragma' => 'no-cache',
+            'accept-encoding' => 'gzip, deflate, br',
             'Cache-Control' => 'no-cache',
-            'Content-Type' => 'application/x-www-form-urlencoded',
             'Referer' => sprintf('https://vk.com/audios%d', $this->uid),
         ];
 
@@ -105,7 +104,7 @@ class AlAudio
             }
             else
             {
-                $_[] = \sprintf('%s: %s', $key, $value);
+                $_[] = \sprintf('%s=%s', $key, $value);
             }
         }
 
@@ -114,52 +113,54 @@ class AlAudio
 
     protected function post(string $url, array $data = []): string
     {
-//        $ch = \curl_init($url);
-        $ch = \curl_init('http://httpbin.org/post');
+        $ch = \curl_init($url);
         \curl_setopt($ch, CURLOPT_HTTPHEADER, $this->headers());
         \curl_setopt($ch, CURLOPT_POST, true);
         \curl_setopt($ch, CURLOPT_COOKIE, $this->parseCookies($this->cookies));
         \curl_setopt($ch, CURLOPT_POSTFIELDS, $data);
+        \curl_setopt($ch, CURLOPT_ENCODING, 'gzip');
+        \curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+
         $result = \curl_exec($ch);
         \curl_close($ch);
+
         return $result;
     }
 
     protected function fillPlaylist(int $offset = 0): void
     {
-        $this->post(
-            $this->api_url,
-            $this->load_data($offset)
-        );
-
         $response = $this->parseResponse($this->post(
             $this->api_url,
             $this->load_data($offset)
         ));
 
-        if (!isset($response['type']) or $response['type'] !== 'playlist')
+        if (!isset($response->type) or $response->type !== 'playlist')
         {
             return;
         }
 
-        $this->playlist = \array_merge($this->playlist, $response['list']);
+        $this->playlist = \array_merge($this->playlist, $response->list);
 
-        if (!empty($response['hasMore']))
+        if (!empty($response->hasMore))
         {
             sleep($this->sleep_time);
-            $this->fillPlaylist($response['nextOffset']);
+            $this->fillPlaylist($response->nextOffset);
         }
     }
 
-    protected function parseResponse($response, $default = []): array
+    protected function parseResponse($response, $default = [])
     {
         try
         {
             \preg_match('~<!json>(.+?)<!>~', $response, $matches);
+            $result = \json_decode($matches[1]);
+            if (\json_last_error())
+            {
+                $result = \json_decode(iconv('windows-1251', 'utf-8', $matches[1]));
+            }
 
-            return \json_decode($matches[1]);
-        }
-        catch (\Exception $e)
+            return $result;
+        } catch (\Exception $e)
         {
             return $default;
         }
