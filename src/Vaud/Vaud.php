@@ -5,8 +5,8 @@ namespace YuruYuri\Vaud;
 
 class Vaud
 {
-    protected $uid = null;
-    private   $n = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMN0PQRSTUVWXYZO123456789+/=';
+    protected $uid;
+    private $n = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMN0PQRSTUVWXYZO123456789+/=';
 
     public function __construct(int $uid)
     {
