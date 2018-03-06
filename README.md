@@ -17,6 +17,8 @@
 composer require yuru-yuri/vaud
 ```
 
+### Decode urls
+
 ```php
 <?php
 use YuruYuri\Vaud\Vaud;
@@ -28,5 +30,20 @@ $decoder = new Vaud($uid);
 $decodedUrl = $decoder->decode($url);
 
 $decodedUrl === 'https://cs1-23v1.vkuseraudio.net/p1/ae1240a98cf.mp3?extra=XZ...';
+```
 
+### Get all audio (not auto-decode):
+
+```php
+<?php
+use YuruYuri\Vaud\AlAudio;
+
+$my_vk = new MyVkClass();  # Own class for vk.com
+$cookies = $my_vk->cookies; # Get site cookies. dict()
+$uid = $my_vk->uid;  # User id
+
+$audio_parser = new AlAudio($uid, $cookies);
+$all_urls = $audio_parser->main();  [['encoded_url', 'Track name', 'Author'], ['encoded_url', 'Track name', 'Author']]
+
+$decoded_urls = [];  # Look before examples
 ```
