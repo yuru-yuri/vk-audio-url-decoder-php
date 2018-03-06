@@ -18,12 +18,13 @@ class AlAudio
      *
      * @param int $uid
      * @param array $cookies
+     * @param string $userAgent
      */
-    public function __construct(int $uid, array $cookies)
+    public function __construct(int $uid, array $cookies, ?string $userAgent = null)
     {
         $this->uid = $uid;
         $this->cookies = $cookies;
-        $this->user_agent = \sprintf('%s %s %s %s',
+        $this->user_agent = $userAgent ?? \sprintf('%s %s %s %s',
             'Mozilla/5.0 (Windows NT 10.0; Win64; x64)',
             'AppleWebKit/537.36 (KHTML, like Gecko)',
             'Chrome/60.0.3112.101',
@@ -166,32 +167,47 @@ class AlAudio
         }
     }
 
-    protected function parsePlaylist(): array
+    protected function parseAudioItem($item) {
+        return [$item[2], $item[3], $item[4]];
+    }
+
+    protected function parseMoreAudio(array $items): array
     {
-        $officialParse = [];
-        $officialResponse = [];
         $response = [];
-        foreach ($this->playlist as $value)
+        $_ = [];
+        foreach ($items as $key => $item)
         {
-            if (empty($value[2]))
+            $_[] = $item;
+
+            if ($key && $key % $this->split_audio_size == 0)
             {
-                $officialParse[] = $value;
-            }
-            else
-            {
-                $response[] = [$value[2], $value[3], $value[4]];
-            }
-            if (\count($officialParse) > 5)
-            {
-                $this->parseListItems($officialParse, $officialResponse);
-                $officialParse = [];
+                $this->getHiddenItems($_, $response);
             }
         }
 
-        return array_merge($response, $officialResponse);
+        return $response;
+    }
+    
+    protected function parsePlaylist(): array
+    {
+        $response = [];
+        $_= [];
+        foreach ($this->playlist as $item)
+        {
+            if (empty($item[2]))
+            {
+                $_[] = $item;
+            }
+            else
+            {
+                $response[] = $this->parseAudioItem($item);
+            }
+        }
+
+        return array_merge($response, $this->parseMoreAudio($_));
     }
 
-    protected function parseListItems(array $items, array &$officialResponse = []): void
+    protected function getHiddenItems(array $items, array &$response): void
     {
         $_ = [];
         foreach ($items as $item)
@@ -206,7 +222,7 @@ class AlAudio
 
         foreach ($data as $item)
         {
-            $officialResponse[] = [$item[2], $item[3], $item[4]];
+            $response[] = $this->parseAudioItem($item);
         }
     }
 
