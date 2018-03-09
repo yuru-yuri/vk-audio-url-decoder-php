@@ -9,6 +9,7 @@ class AlAudio
     protected $uid;
     protected $user_agent;
     protected $playlist = [];
+    protected $decodedPlaylist = [];
     protected $playlist_id = -1;  # Default - all tracks
     protected $sleep_time = 1;
     protected $split_audio_size = 5;
@@ -26,10 +27,10 @@ class AlAudio
         $this->uid = $uid;
         $this->cookies = $cookies;
         $this->user_agent = $userAgent ?? \sprintf('%s %s %s %s',
-            'Mozilla/5.0 (Windows NT 10.0; Win64; x64)',
-            'AppleWebKit/537.36 (KHTML, like Gecko)',
-            'Chrome/60.0.3112.101',
-            'Safari/537.36');
+                'Mozilla/5.0 (Windows NT 10.0; Win64; x64)',
+                'AppleWebKit/537.36 (KHTML, like Gecko)',
+                'Chrome/60.0.3112.101',
+                'Safari/537.36');
     }
 
     /**
@@ -38,7 +39,9 @@ class AlAudio
     public function main(): array
     {
         $this->fillPlaylist();
-        return $this->parsePlaylist();
+        $this->parsePlaylist();
+
+        return $this->decodedPlaylist;
     }
 
     /**
@@ -158,19 +161,17 @@ class AlAudio
             $result = \json_decode($matches[1]);
             if (\json_last_error())
             {
-                if($this->debug)
-                {
-                    echo \json_last_error_msg() . PHP_EOL;
-                }
-
                 $result = \json_decode(iconv('windows-1251', 'utf-8', $matches[1]));
             }
 
             if (\json_last_error())
             {
-                if($this->debug)
+                if ($this->debug)
                 {
-                    echo \json_last_error_msg() . PHP_EOL;
+                    echo \json_last_error_msg() . PHP_EOL . PHP_EOL;
+                    echo 'Matches: ' . count($matches) . PHP_EOL . PHP_EOL;
+
+                    echo substr($response, 0, 300) . PHP_EOL . PHP_EOL;
                 }
 
                 $result = $default;
@@ -183,13 +184,13 @@ class AlAudio
         }
     }
 
-    protected function parseAudioItem($item) {
+    protected function prepareAudioItem($item)
+    {
         return [$item[2], $item[3], $item[4]];
     }
 
-    protected function parseMoreAudio(array $items): array
+    protected function parseMoreAudio(array $items): void
     {
-        $response = [];
         $_ = [];
         foreach ($items as $key => $item)
         {
@@ -197,17 +198,15 @@ class AlAudio
 
             if ($key && $key % $this->split_audio_size == 0)
             {
-                $this->getHiddenItems($_, $response);
+                $this->getHiddenItems($_);
+                $_ = [];
             }
         }
-
-        return $response;
     }
-    
-    protected function parsePlaylist(): array
+
+    protected function parsePlaylist(): void
     {
-        $response = [];
-        $_= [];
+        $_ = [];
         foreach ($this->playlist as $item)
         {
             if (empty($item[2]))
@@ -216,14 +215,14 @@ class AlAudio
             }
             else
             {
-                $response[] = $this->parseAudioItem($item);
+                $this->decodedPlaylist[] = $this->prepareAudioItem($item);
             }
         }
 
-        return array_merge($response, $this->parseMoreAudio($_));
+        $this->parseMoreAudio($_);
     }
 
-    protected function getHiddenItems(array $items, array &$response): void
+    protected function getHiddenItems(array $items): void
     {
         $_ = [];
         foreach ($items as $item)
@@ -238,7 +237,7 @@ class AlAudio
 
         foreach ($data as $item)
         {
-            $response[] = $this->parseAudioItem($item);
+            $this->decodedPlaylist[] = $this->prepareAudioItem($item);
         }
     }
 
