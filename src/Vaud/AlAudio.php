@@ -12,6 +12,7 @@ class AlAudio
     protected $playlist_id = -1;  # Default - all tracks
     protected $sleep_time = 1;
     protected $split_audio_size = 5;
+    public $debug = false;
 
     /**
      * AlAudio constructor.
@@ -157,7 +158,22 @@ class AlAudio
             $result = \json_decode($matches[1]);
             if (\json_last_error())
             {
+                if($this->debug)
+                {
+                    echo \json_last_error_msg() . PHP_EOL;
+                }
+
                 $result = \json_decode(iconv('windows-1251', 'utf-8', $matches[1]));
+            }
+
+            if (\json_last_error())
+            {
+                if($this->debug)
+                {
+                    echo \json_last_error_msg() . PHP_EOL;
+                }
+
+                $result = $default;
             }
 
             return $result;
