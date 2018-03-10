@@ -4,6 +4,9 @@ namespace YuruYuri\Vaud;
 
 class AlAudio
 {
+    public $sleep_time = 1;
+    public $debug = false;
+
     protected $api_url = 'https://vk.com/al_audio.php';
     protected $cookies;
     protected $uid;
@@ -11,9 +14,10 @@ class AlAudio
     protected $playlist = [];
     protected $decodedPlaylist = [];
     protected $playlist_id = -1;  # Default - all tracks
-    protected $sleep_time = 1;
     protected $split_audio_size = 5;
-    public $debug = false;
+    protected $limit = 0;
+    protected $offset = 0;
+    private $_offset = 0;
 
     /**
      * AlAudio constructor.
@@ -41,6 +45,10 @@ class AlAudio
         $this->fillPlaylist();
         $this->parsePlaylist();
 
+        if($this->limit > 0)
+        {
+            return array_slice($this->decodedPlaylist, 0, $this->limit);
+        }
         return $this->decodedPlaylist;
     }
 
@@ -139,6 +147,11 @@ class AlAudio
             $this->load_data($offset)
         ));
 
+        if($this->limit > 0 && count($this->playlist) >= $this->limit)
+        {
+            return;
+        }
+
         if (!isset($response->type) or $response->type !== 'playlist')
         {
             return;
@@ -209,13 +222,17 @@ class AlAudio
         $_ = [];
         foreach ($this->playlist as $item)
         {
-            if (empty($item[2]))
+            $this->_offset++;
+            if($this->offset > 0 && $this->offset < $this->_offset)
             {
-                $_[] = $item;
-            }
-            else
-            {
-                $this->decodedPlaylist[] = $this->prepareAudioItem($item);
+                if (empty($item[2]))
+                {
+                    $_[] = $item;
+                }
+                else
+                {
+                    $this->decodedPlaylist[] = $this->prepareAudioItem($item);
+                }
             }
         }
 
