@@ -2,6 +2,10 @@
 
 namespace YuruYuri\Vaud;
 
+/**
+ * Class AlAudio
+ * @package YuruYuri\Vaud
+ */
 class AlAudio extends AlAudioBase
 {
     /**
@@ -22,6 +26,10 @@ class AlAudio extends AlAudioBase
                 'Safari/537.36');
     }
 
+    /**
+     * @param int $limit
+     * @param int $offset
+     */
     public function setLimitOffset(int $limit = 0, int $offset = 0): void
     {
         $limit > 0 and $this->limit = $limit;
@@ -52,11 +60,17 @@ class AlAudio extends AlAudioBase
         $this->playlist_id = $id;
     }
 
+    /**
+     * @return array
+     */
     public function getUnParsedTracks(): array
     {
         return $this->unParsedTracks;
     }
 
+    /**
+     * @param int $offset
+     */
     protected function fillPlaylist(int $offset = 0): void
     {
         if(!$offset && $this->offset)
@@ -69,12 +83,9 @@ class AlAudio extends AlAudioBase
             $this->loadData($offset)
         ));
 
-        if($this->limit > 0 && count($this->playlist) >= $this->limit)
-        {
-            return;
-        }
+        $check_type = !isset($response->type) or $response->type !== 'playlist';
 
-        if (!isset($response->type) or $response->type !== 'playlist')
+        if($check_type or ($this->limit > 0 && count($this->playlist) >= $this->limit))
         {
             return;
         }
@@ -88,6 +99,9 @@ class AlAudio extends AlAudioBase
         }
     }
 
+    /**
+     *
+     */
     protected function parsePlaylist(): void
     {
         $_ = [];

@@ -8,6 +8,10 @@ class Vaud
     protected $uid;
     private $n = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMN0PQRSTUVWXYZO123456789+/=';
 
+    /**
+     * Vaud constructor.
+     * @param int $uid
+     */
     public function __construct(int $uid)
     {
         if (!$uid)
