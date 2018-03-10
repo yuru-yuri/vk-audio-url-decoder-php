@@ -8,6 +8,9 @@ use YuruYuri\Vaud\Vaud;
 
 class MockAlAudio extends AlAudio
 {
+    public $sleep_time = 0;
+    public $debug = false;
+
     protected function post(string $url, array $data = []): string
     {
         $_path = sprintf('%s/data/%s_%s.txt',
@@ -40,6 +43,7 @@ class AlAudioTest extends \TestCase
         $this->assertTrue(is_array(end($items)));
         $this->assertTrue(false !== strpos(end($items)[0], 'audio_api_unavailable'));
     }
+
     public function testDecodeItem()
     {
         $aa = new MockAlAudio($this->uid, $this->cookies);

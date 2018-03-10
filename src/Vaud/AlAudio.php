@@ -4,8 +4,8 @@ namespace YuruYuri\Vaud;
 
 class AlAudio
 {
-    public $sleep_time = 1;
-    public $debug = false;
+    public $sleep_time = 10;
+    public $debug = true;
 
     protected $api_url = 'https://vk.com/al_audio.php';
     protected $cookies;
@@ -17,6 +17,7 @@ class AlAudio
     protected $split_audio_size = 5;
     protected $limit = 0;
     protected $offset = 0;
+    protected $unParsedTracks = [];
     private $_offset = 0;
 
     /**
@@ -37,6 +38,12 @@ class AlAudio
                 'Safari/537.36');
     }
 
+    public function setLimitOffset(int $limit = 0, int $offset = 0): void
+    {
+        $limit > 0 and $this->limit = $limit;
+        $offset > 0 and $this->offset = $offset;
+    }
+
     /**
      * @return array
      */
@@ -49,15 +56,21 @@ class AlAudio
         {
             return array_slice($this->decodedPlaylist, 0, $this->limit);
         }
+
         return $this->decodedPlaylist;
     }
 
     /**
      * @param int $id
      */
-    public function set_playlist_id(int $id): void
+    public function setPlaylistId(int $id): void
     {
         $this->playlist_id = $id;
+    }
+
+    public function getUnParsedTracks()
+    {
+        return $this->unParsedTracks;
     }
 
     protected function load_data($offset = 0): array
@@ -103,7 +116,6 @@ class AlAudio
             'al' => 1,
             'ids' => implode(',', $ids),
         ];
-
     }
 
     protected function parseCookies(array $cookies): string
@@ -199,7 +211,17 @@ class AlAudio
 
     protected function prepareAudioItem($item)
     {
-        return [$item[2], $item[3], $item[4]];
+        return [
+            0 => $item[2],
+            1 => $item[3],
+            2 => $item[4],
+            3 => $item[0],
+
+            'url' => $item[2],
+            'track' => $item[3],
+            'artist' => $item[4],
+            'id' => $item[0],
+        ];
     }
 
     protected function parseMoreAudio(array $items): void
@@ -223,7 +245,7 @@ class AlAudio
         foreach ($this->playlist as $item)
         {
             $this->_offset++;
-            if($this->offset <= 0 && $this->offset < $this->_offset)
+            if($this->offset == 0 || $this->offset < $this->_offset)
             {
                 if (empty($item[2]))
                 {
@@ -241,21 +263,68 @@ class AlAudio
 
     protected function getHiddenItems(array $items): void
     {
-        $_ = [];
-        foreach ($items as $item)
-        {
-            $_[] = sprintf('%d_%d', $item[1], $item[0]);
-        }
+        $_ = $this->tracksIds($items);
+        $data = $this->tryLoadElements($_, count($items));
 
-        $data = $this->parseResponse($this->post(
-            $this->api_url,
-            $this->reloadData($_)
-        ));
+        if(\count($data) < \count($items))
+        {
+            $map = array_map(function ($a) { return $a[0]; }, $data);
+
+            foreach ($items as $item)
+            {
+                if(!in_array($item[0], $map))
+                {
+                    $this->unParsedTracks[] = $item;
+                }
+            }
+        }
 
         foreach ($data as $item)
         {
             $this->decodedPlaylist[] = $this->prepareAudioItem($item);
         }
+    }
+
+    private function tracksIds(array $items): array
+    {
+        $_ = [];
+        foreach ($items as $item)
+        {
+            $_[] = sprintf('%d_%d', $item[1], $item[0]);
+        }
+        return $_;
+    }
+
+    private function tryLoadElements($_, $count = 0)
+    {
+        $response = $this->post(
+            $this->api_url,
+            $this->reloadData($_)
+        );
+
+        $data = $this->parseResponse($response);
+
+        if($count === 0)
+        {
+            if ($this->debug && \defined('APP_ROOT'))
+            {
+                is_dir(APP_ROOT . '/debug/') or mkdir(APP_ROOT . '/debug/', 0777, true);
+                file_put_contents(APP_ROOT . '/debug/' . \implode('_', $_) . '.txt', $response);
+            }
+        }
+
+        if (!\count($data) && $count)
+        {
+            if($this->debug)
+            {
+                echo 'Time ban. Sleep...' . PHP_EOL;
+            }
+
+            sleep($this->sleep_time);
+            return $this->tryLoadElements($_);
+        }
+
+        return $data;
     }
 
 }
