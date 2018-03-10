@@ -199,7 +199,7 @@ abstract class AlAudioBase
         return $_;
     }
 
-    private function tryLoadElements($_, $count = 0)
+    protected function tryLoadElements($_, $count = 0)
     {
         $response = $this->post(
             $this->api_url,

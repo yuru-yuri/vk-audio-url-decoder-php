@@ -69,6 +69,15 @@ class AlAudio extends AlAudioBase
     }
 
     /**
+     * @param array $ids
+     * @return array|mixed
+     */
+    public function getItemsByIds(array $ids)
+    {
+        return $this->tryLoadElements($ids, count($ids));
+    }
+
+    /**
      * @param int $offset
      */
     protected function fillPlaylist(int $offset = 0): void
