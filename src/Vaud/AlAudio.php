@@ -223,7 +223,7 @@ class AlAudio
         foreach ($this->playlist as $item)
         {
             $this->_offset++;
-            if($this->offset > 0 && $this->offset < $this->_offset)
+            if($this->offset <= 0 && $this->offset < $this->_offset)
             {
                 if (empty($item[2]))
                 {
