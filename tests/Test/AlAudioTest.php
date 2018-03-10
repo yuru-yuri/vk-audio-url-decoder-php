@@ -32,7 +32,10 @@ class MockAlAudio extends AlAudio
 class AlAudioTest extends \TestCase
 {
     protected $uid = 165962770;
-    protected $cookies = [];
+    protected $cookies = [
+        'cookie_key=cookie_value',
+        'cookie_key_a' => 'cookie_value_a',
+    ];
 
     public function testVk()
     {
