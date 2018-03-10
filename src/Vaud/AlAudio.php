@@ -18,7 +18,6 @@ class AlAudio
     protected $limit = 0;
     protected $offset = 0;
     protected $unParsedTracks = [];
-    private $_offset = 0;
 
     /**
      * AlAudio constructor.
@@ -154,6 +153,11 @@ class AlAudio
 
     protected function fillPlaylist(int $offset = 0): void
     {
+        if(!$offset && $this->offset)
+        {
+            $offset = $this->offset;
+        }
+
         $response = $this->parseResponse($this->post(
             $this->api_url,
             $this->load_data($offset)
@@ -244,17 +248,13 @@ class AlAudio
         $_ = [];
         foreach ($this->playlist as $item)
         {
-            $this->_offset++;
-            if($this->offset == 0 || $this->offset < $this->_offset)
+            if (empty($item[2]))
             {
-                if (empty($item[2]))
-                {
-                    $_[] = $item;
-                }
-                else
-                {
-                    $this->decodedPlaylist[] = $this->prepareAudioItem($item);
-                }
+                $_[] = $item;
+            }
+            else
+            {
+                $this->decodedPlaylist[] = $this->prepareAudioItem($item);
             }
         }
 
