@@ -2,13 +2,13 @@
 
 namespace Test;
 
-use YuruYuri\Vaud\Vaud;
+use YuruYuri\Vaud\Decoder;
 
 
-class Protect2Public extends Vaud
+class Protect2Public extends Decoder
 {
     public function v($e)
-    {
+    { 
         return parent::v($e);
     }
 
@@ -24,7 +24,7 @@ class Protect2Public extends Vaud
 }
 
 
-class VaudTest extends \TestCase
+class DecoderTest extends \TestCase
 {
     protected $urls = [
         'https://m.vk.com/mp3/audio_api_unavailable.mp3?extra=C1LOz3q4mxHUrZHjte5xn3zzmO1hzMGXyxzeqZjPCZjdt3uXlwn6nhn5lvLJm3m9yJHMAhrYDLffvLnkof9boc9Tyu5LAej4yMrQtf9kwv8Vv29ozenVyuCOAOXPnI1Owc54lM9kl2iYl3runZuYvNzIqY12q3PJDgfbwgP6A2vFng9JoNfWtNjHwLHKzwuWn3vbyvHtEKu/z3fvDhbmsfvPAc5NmxvLngLeq2vSwNjlowfYtJbMyMjiyvDnr3jUDvLWwNLvwMDVsxvNnG#AqSZnZe',
@@ -35,7 +35,7 @@ class VaudTest extends \TestCase
 
     public function testUrls()
     {
-        $decoder = new Vaud($this->uid);
+        $decoder = new Decoder($this->uid);
         foreach ($this->urls as $url)
         {
             $_url = $decoder->decode($url);
@@ -45,14 +45,14 @@ class VaudTest extends \TestCase
 
     public function test_url1()
     {
-        $decoder = new Vaud($this->uid);
+        $decoder = new Decoder($this->uid);
         $decoded_url = $decoder->decode($this->urls[0] . 'abcdef');  # O_o
         $this->assertFalse(false === \strpos($decoded_url, 'audio_api_unavailable'));
     }
 
     public function test_url2()
     {
-        $decoder = new Vaud($this->uid);
+        $decoder = new Decoder($this->uid);
 
         $result = false;
         try
@@ -71,7 +71,7 @@ class VaudTest extends \TestCase
         $result = false;
         try
         {
-            new Vaud(0);
+            new Decoder(0);
         }
         catch (\InvalidArgumentException $e) {
             $result = true;
