@@ -86,10 +86,17 @@ class AlAudioTest extends \PHPUnit\Framework\TestCase
         $this->assertInstanceOf(Decoder::class, $vaud);
     }
 
-//    public function callbackTest()
-//    {
-//        $aa = new MockAlAudio($this->uid, $this->cookies);
-//        $items = $aa->main();
-//    }
+    public function testCallback()
+    {
+        $data = [];
+        $aa = new MockAlAudio($this->uid, $this->cookies);
+        $aa->setDebugCallback(function (...$a) use (&$data)
+        {
+            $data[] = $a;
+        });
+        $aa->main();
+
+        $this->assertTrue(\count($data) > 0);
+    }
 
 }

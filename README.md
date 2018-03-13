@@ -43,7 +43,31 @@ $cookies = $my_vk->cookies; # Get site cookies. dict()
 $uid = $my_vk->uid;  # User id
 
 $audio_parser = new AlAudio($uid, $cookies);
-$all_urls = $audio_parser->main();  [['encoded_url', 'Track name', 'Author'], ['encoded_url', 'Track name', 'Author']]
+$all_urls = $audio_parser->main();
+
+// result:
+[
+  [
+    'url' => 'Encoded url', 
+    'track' => 'Track name', 
+    'author' => 'Author', 
+    'id' => 'VK track id',
+    0 => 'Encoded url', 
+    1 => 'Track name',
+    2 => 'Author', 
+    3 => 'VK track id'
+  ],
+  [
+    'url' => 'Encoded url', 
+    'track' => 'Track name', 
+    'author' => 'Author', 
+    'id' => 'VK track id',
+    0 => 'Encoded url', 
+    1 => 'Track name',
+    2 => 'Author', 
+    3 => 'VK track id'
+  ],
+];
 
 $decoded_urls = [];  # Look before examples
 ```

@@ -144,9 +144,9 @@ abstract class AlAudioBase
             {
                 if (\is_callable($this->debugCallback))
                 {
-                $this->debugCallback(\json_last_error_msg());
-                $this->debugCallback('Matches: ' . \count($matches));
-                $this->debugCallback($response);
+                \call_user_func($this->debugCallback,\json_last_error_msg());
+                \call_user_func($this->debugCallback,'Matches: ' . \count($matches));
+                \call_user_func($this->debugCallback,$response);
                 }
 
                 $result = $default;
@@ -270,12 +270,12 @@ abstract class AlAudioBase
 
         if (\is_callable($this->debugCallback))
         {
-            $this->debugCallback($response, $_);
+            \call_user_func($this->debugCallback, $response, $_);
         }
 
         if (!\count($data) && $count)
         {
-            \is_callable($this->debugCallback) && $this->debugCallback('Time ban. Sleep...');
+            \is_callable($this->debugCallback) && \call_user_func($this->debugCallback,'Time ban. Sleep...');
 
             sleep($this->sleepTime);
             return $this->tryLoadElements($_);
