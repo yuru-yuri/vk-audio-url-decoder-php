@@ -3,13 +3,13 @@
 namespace Test;
 
 use YuruYuri\Vaud\AlAudio;
+use YuruYuri\Vaud\Decoder;
 use YuruYuri\Vaud\Vaud;
 
 
 class MockAlAudio extends AlAudio
 {
-    public $sleep_time = 0;
-    public $debug = false;
+    public $sleepTime = 0;
 
     protected function post(string $url, array $data = []): string
     {
@@ -26,12 +26,17 @@ class MockAlAudio extends AlAudio
 
         return parent::post($url, $data);
     }
+
+    public function getPlaylist(): array
+    {
+        return $this->playlist;
+    }
 }
 
 
-class AlAudioTest extends \TestCase
+class AlAudioTest extends \PHPUnit\Framework\TestCase
 {
-    protected $uid = 165962770;
+    protected $uid = 253093876;
     protected $cookies = [
         'cookie_key=cookie_value',
         'cookie_key_a' => 'cookie_value_a',
@@ -42,19 +47,49 @@ class AlAudioTest extends \TestCase
         $aa = new MockAlAudio($this->uid, $this->cookies);
         $items = $aa->main();
 
-        $this->assertTrue(count($items) > 100);
-        $this->assertTrue(is_array(end($items)));
-        $this->assertTrue(false !== strpos(end($items)[0], 'audio_api_unavailable'));
+        $this->assertSame(\count($aa->getPlaylist()), \count($items) + \count($aa->getUnParsedTracks()));
+        $this->assertInternalType('array', end($items));
+        $this->assertNotFalse(strpos(end($items)[0], 'audio_api_unavailable'));
     }
 
     public function testDecodeItem()
     {
         $aa = new MockAlAudio($this->uid, $this->cookies);
+        $aa->setLimitOffset(90, 0);
         $items = $aa->main();
 
-        $decoder = new Vaud($this->uid);
+        $decoder = new Decoder($this->uid);
 
-        $this->assertTrue(false === strpos($decoder->decode(current($items)[0]), 'audio_api_unavailable'));
-        $this->assertTrue(false === strpos($decoder->decode(end($items)[0]), 'audio_api_unavailable'));
+        $this->assertFalse(strpos($decoder->decode(current($items)['url']), 'audio_api_unavailable'));
+        $this->assertFalse(strpos($decoder->decode(end($items)['url']), 'audio_api_unavailable'));
     }
+
+    public function testLimitOffset()
+    {
+        $aa = new MockAlAudio($this->uid, $this->cookies);
+        $offset = 6;
+        $aa->setLimitOffset(20, $offset);
+        $items = $aa->main();
+
+        $this->assertCount(20, $items);
+
+        $aa = new MockAlAudio($this->uid, $this->cookies);
+        $aa->setLimitOffset(30);
+        $itemsWithoutOffset = $aa->main();
+
+        $this->assertSame($items[0]['id'], $itemsWithoutOffset[$offset]['id']);
+    }
+
+    public function testInstanceVoid()
+    {
+        $vaud = new Vaud(1);
+        $this->assertInstanceOf(Decoder::class, $vaud);
+    }
+
+//    public function callbackTest()
+//    {
+//        $aa = new MockAlAudio($this->uid, $this->cookies);
+//        $items = $aa->main();
+//    }
+
 }

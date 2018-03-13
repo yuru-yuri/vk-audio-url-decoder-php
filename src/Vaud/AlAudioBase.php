@@ -5,21 +5,26 @@ namespace YuruYuri\Vaud;
 
 abstract class AlAudioBase
 {
-    public $sleep_time = 10;
-    public $debug = false;
+    public $sleepTime = 15;
 
-    protected $api_url = 'https://vk.com/al_audio.php';
+    protected $apiUrl = 'https://vk.com/al_audio.php';
     protected $cookies;
     protected $uid;
-    protected $user_agent;
+    protected $userAgent;
     protected $playlist = [];
     protected $decodedPlaylist = [];
-    protected $playlist_id = -1;  # Default - all tracks
-    protected $split_audio_size = 5;
+    protected $playlistId = -1; # Default - all tracks
+    protected $splitAudioSize = 6;
     protected $limit = 0;
     protected $offset = 0;
     protected $unParsedTracks = [];
+    protected $debugCallback;
 
+    /**
+     * @param int $offset
+     *
+     * @return array
+     */
     protected function loadData($offset = 0): array
     {
         return [
@@ -29,11 +34,16 @@ abstract class AlAudioBase
             'claim' => '0',
             'offset' => $offset,
             'owner_id' => $this->uid,
-            'playlist_id' => $this->playlist_id,
+            'playlist_id' => $this->playlistId,
             'type' => 'playlist'
         ];
     }
 
+    /**
+     * @param array $ids
+     *
+     * @return array
+     */
     protected function reloadData(array $ids): array
     {
         return [
@@ -43,10 +53,13 @@ abstract class AlAudioBase
         ];
     }
 
+    /**
+     * @return array
+     */
     private function headers(): array
     {
         $headers = [
-            'User-Agent' => $this->user_agent,
+            'User-Agent' => $this->userAgent,
             'Accept-Language' => 'ru-RU,ru;q=0.8,en-US;q=0.5,en;q=0.3',
             'X-Requested-With' => 'XMLHttpRequest',
             'Connection' => 'keep-alive',
@@ -65,6 +78,11 @@ abstract class AlAudioBase
         return $_;
     }
 
+    /**
+     * @param array $cookies
+     *
+     * @return string
+     */
     protected function parseCookies(array $cookies): string
     {
         $_ = [];
@@ -83,6 +101,12 @@ abstract class AlAudioBase
         return implode('; ', $_);
     }
 
+    /**
+     * @param string $url
+     * @param array $data
+     *
+     * @return string
+     */
     protected function post(string $url, array $data = []): string
     {
         $ch = \curl_init($url);
@@ -99,6 +123,12 @@ abstract class AlAudioBase
         return $result;
     }
 
+    /**
+     * @param $response
+     * @param mixed $default
+     *
+     * @return array|mixed
+     */
     protected function parseResponse($response, $default = [])
     {
         try
@@ -112,12 +142,11 @@ abstract class AlAudioBase
 
             if (\json_last_error())
             {
-                if ($this->debug)
+                if (\is_callable($this->debugCallback))
                 {
-                    echo \json_last_error_msg() . PHP_EOL . PHP_EOL;
-                    echo 'Matches: ' . count($matches) . PHP_EOL . PHP_EOL;
-
-                    echo substr($response, 0, 300) . PHP_EOL . PHP_EOL;
+                $this->debugCallback(\json_last_error_msg());
+                $this->debugCallback('Matches: ' . \count($matches));
+                $this->debugCallback($response);
                 }
 
                 $result = $default;
@@ -130,7 +159,12 @@ abstract class AlAudioBase
         }
     }
 
-    protected function prepareAudioItem($item)
+    /**
+     * @param $item
+     *
+     * @return array
+     */
+    protected function prepareAudioItem($item): array
     {
         return [
             0 => $item[2],
@@ -145,26 +179,38 @@ abstract class AlAudioBase
         ];
     }
 
+    /**
+     * @param array $items
+     */
     protected function parseMoreAudio(array $items): void
     {
         $_ = [];
-        foreach ($items as $key => $item)
+        foreach ($items as $item)
         {
             $_[] = $item;
 
-            if ($key && $key % $this->split_audio_size == 0)
+            if (\count($_) === $this->splitAudioSize)
             {
                 $this->getHiddenItems($_);
                 $_ = [];
             }
         }
+        $this->getHiddenItems($_);
     }
 
+    /**
+     * @param array $items
+     * @param array $response
+     */
     private function fillUnparsedHiddenTracks(array $items, array $response): void
     {
         if(\count($response) < \count($items))
         {
-            $map = array_map(function ($a) { return $a[0]; }, $response);
+            $map = [];
+            foreach ($response as $item)
+            {
+                $map[] = $item[0];
+            }
 
             foreach ($items as $item)
             {
@@ -176,6 +222,9 @@ abstract class AlAudioBase
         }
     }
 
+    /**
+     * @param array $items
+     */
     protected function getHiddenItems(array $items): void
     {
         $_ = $this->tracksIds($items);
@@ -189,6 +238,11 @@ abstract class AlAudioBase
         }
     }
 
+    /**
+     * @param array $items
+     *
+     * @return array
+     */
     private function tracksIds(array $items): array
     {
         $_ = [];
@@ -199,26 +253,31 @@ abstract class AlAudioBase
         return $_;
     }
 
-    protected function tryLoadElements($_, $count = 0)
+    /**
+     * @param array $_
+     * @param int $count
+     *
+     * @return array|mixed
+     */
+    protected function tryLoadElements(array $_, int $count = 0)
     {
         $response = $this->post(
-            $this->api_url,
+            $this->apiUrl,
             $this->reloadData($_)
         );
 
         $data = $this->parseResponse($response);
 
-        if ($count === 0 && $this->debug && \defined('APP_ROOT'))
+        if (\is_callable($this->debugCallback))
         {
-            is_dir(APP_ROOT . '/VaudDebug/') or mkdir(APP_ROOT . '/VaudDebug/', 0777, true);
-            file_put_contents(APP_ROOT . '/debug/' . \implode('_', $_) . '.txt', $response);
+            $this->debugCallback($response, $_);
         }
 
         if (!\count($data) && $count)
         {
-            $this->debug && print('Time ban. Sleep...' . PHP_EOL);
+            \is_callable($this->debugCallback) && $this->debugCallback('Time ban. Sleep...');
 
-            sleep($this->sleep_time);
+            sleep($this->sleepTime);
             return $this->tryLoadElements($_);
         }
 

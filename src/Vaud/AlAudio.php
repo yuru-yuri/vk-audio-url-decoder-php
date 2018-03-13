@@ -17,9 +17,9 @@ class AlAudio extends AlAudioBase
      */
     public function __construct(int $uid, array $cookies, ?string $userAgent = null)
     {
-        $this->uid = $uid;
-        $this->cookies = $cookies;
-        $this->user_agent = $userAgent ?? \sprintf('%s %s %s %s',
+        $this->uid       = $uid;
+        $this->cookies   = $cookies;
+        $this->userAgent = $userAgent ?? \sprintf('%s %s %s %s',
                 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)',
                 'AppleWebKit/537.36 (KHTML, like Gecko)',
                 'Chrome/60.0.3112.101',
@@ -57,7 +57,7 @@ class AlAudio extends AlAudioBase
      */
     public function setPlaylistId(int $id): void
     {
-        $this->playlist_id = $id;
+        $this->playlistId = $id;
     }
 
     /**
@@ -78,33 +78,45 @@ class AlAudio extends AlAudioBase
     }
 
     /**
+     * @param callable $callback
+     */
+    public function setDebugCallback(callable $callback): void
+    {
+        $this->debugCallback = $callback;
+    }
+
+    /**
      * @param int $offset
      */
     protected function fillPlaylist(int $offset = 0): void
     {
-        if(!$offset && $this->offset)
+        while (true)
         {
-            $offset = $this->offset;
-        }
+            if (!$offset && $this->offset)
+            {
+                $offset = $this->offset;
+            }
 
-        $response = $this->parseResponse($this->post(
-            $this->api_url,
-            $this->loadData($offset)
-        ));
+            $response = $this->parseResponse($this->post(
+                $this->apiUrl,
+                $this->loadData($offset)
+            ));
 
-        $check_type = !isset($response->type) or $response->type !== 'playlist';
+            $check_type = !isset($response->type) or $response->type !== 'playlist';
 
-        if($check_type or ($this->limit > 0 && count($this->playlist) >= $this->limit))
-        {
-            return;
-        }
+            if ($check_type || ($this->limit > 0 && \count($this->playlist) >= $this->limit))
+            {
+                return;
+            }
 
-        $this->playlist = \array_merge($this->playlist, $response->list);
+            $this->playlist = \array_merge($this->playlist, $response->list);
 
-        if (!empty($response->hasMore))
-        {
-            sleep($this->sleep_time);
-            $this->fillPlaylist($response->nextOffset);
+            if(empty($response->hasMore))
+            {
+                break;
+            }
+
+            $offset = $response->nextOffset;
         }
     }
 
