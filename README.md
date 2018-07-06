@@ -42,7 +42,7 @@ $my_vk = new MyVkClass();  # Own class for vk.com
 $cookies = $my_vk->cookies; # Get site cookies. dict()
 $uid = $my_vk->uid;  # User id
 
-$audio_parser = new AlAudio($uid, $cookies);
+$audio_parser = new AlAudio($uid /* Your or another user */, $cookies);
 $all_urls = $audio_parser->main();
 
 // result:
