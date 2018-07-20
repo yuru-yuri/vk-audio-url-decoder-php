@@ -4,7 +4,6 @@ namespace Test;
 
 use YuruYuri\Vaud\AlAudio;
 use YuruYuri\Vaud\Decoder;
-use YuruYuri\Vaud\Vaud;
 
 
 class MockAlAudio extends AlAudio
@@ -78,12 +77,6 @@ class AlAudioTest extends \PHPUnit\Framework\TestCase
         $itemsWithoutOffset = $aa->main();
 
         $this->assertSame($items[0]['id'], $itemsWithoutOffset[$offset]['id']);
-    }
-
-    public function testInstanceVoid()
-    {
-        $vaud = new Vaud(1);
-        $this->assertInstanceOf(Decoder::class, $vaud);
     }
 
     public function testCallback()

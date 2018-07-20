@@ -19,6 +19,7 @@ abstract class AlAudioBase
     protected $offset = 0;
     protected $unParsedTracks = [];
     protected $debugCallback;
+    protected $allowRawResponceDebug = false;
 
     /**
      * @param int $offset
@@ -35,7 +36,7 @@ abstract class AlAudioBase
             'offset' => $offset,
             'owner_id' => $this->uid,
             'playlist_id' => $this->playlistId,
-            'type' => 'playlist'
+            'type' => 'playlist',
         ];
     }
 
@@ -117,8 +118,31 @@ abstract class AlAudioBase
         \curl_setopt($ch, CURLOPT_ENCODING, 'gzip');
         \curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
 
+        curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+
+        $before_curl_time = time();
+        if ($this->allowRawResponceDebug)
+        {
+            \is_callable($this->debugCallback) && \call_user_func($this->debugCallback, [
+                'before_curl' => $before_curl_time,
+            ]);
+        }
+
         $result = \curl_exec($ch);
+        $error = \curl_error($ch);
+        $errno = \curl_errno($ch);
         \curl_close($ch);
+
+        if ($this->allowRawResponceDebug)
+        {
+            \is_callable($this->debugCallback) && \call_user_func($this->debugCallback, [
+                'raw_responce' => $result,
+                'error' => $error,
+                'errorno' => $errno,
+                'curl_delta' => time() - $before_curl_time,
+            ]);
+        }
 
         return $result;
     }
@@ -134,6 +158,10 @@ abstract class AlAudioBase
         try
         {
             \preg_match('~<!json>(.+?)<!>~', $response, $matches);
+            if (!isset($matches[1]))
+            {
+                return $default;
+            }
             $result = \json_decode($matches[1]);
             if (\json_last_error())
             {
@@ -144,9 +172,9 @@ abstract class AlAudioBase
             {
                 if (\is_callable($this->debugCallback))
                 {
-                \call_user_func($this->debugCallback,\json_last_error_msg());
-                \call_user_func($this->debugCallback,'Matches: ' . \count($matches));
-                \call_user_func($this->debugCallback,$response);
+                    \call_user_func($this->debugCallback, \json_last_error_msg());
+                    \call_user_func($this->debugCallback, 'Matches: ' . \count($matches));
+                    \call_user_func($this->debugCallback, $response);
                 }
 
                 $result = $default;
@@ -204,7 +232,7 @@ abstract class AlAudioBase
      */
     private function fillUnparsedHiddenTracks(array $items, array $response): void
     {
-        if(\count($response) < \count($items))
+        if (\count($response) < \count($items))
         {
             $map = [];
             foreach ($response as $item)
@@ -214,7 +242,7 @@ abstract class AlAudioBase
 
             foreach ($items as $item)
             {
-                if(!in_array($item[0], $map))
+                if (!in_array($item[0], $map))
                 {
                     $this->unParsedTracks[] = $item;
                 }
@@ -250,6 +278,7 @@ abstract class AlAudioBase
         {
             $_[] = sprintf('%d_%d', $item[1], $item[0]);
         }
+
         return $_;
     }
 
@@ -275,9 +304,10 @@ abstract class AlAudioBase
 
         if (!\count($data) && $count)
         {
-            \is_callable($this->debugCallback) && \call_user_func($this->debugCallback,'Time ban. Sleep...');
+            \is_callable($this->debugCallback) && \call_user_func($this->debugCallback, 'Time ban. Sleep...');
 
             sleep($this->sleepTime);
+
             return $this->tryLoadElements($_);
         }
 

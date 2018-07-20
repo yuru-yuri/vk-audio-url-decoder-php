@@ -17,8 +17,8 @@ class AlAudio extends AlAudioBase
      */
     public function __construct(int $uid, array $cookies, ?string $userAgent = null)
     {
-        $this->uid       = $uid;
-        $this->cookies   = $cookies;
+        $this->uid = $uid;
+        $this->cookies = $cookies;
         $this->userAgent = $userAgent ?? \sprintf('%s %s %s %s',
                 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)',
                 'AppleWebKit/537.36 (KHTML, like Gecko)',
@@ -41,10 +41,16 @@ class AlAudio extends AlAudioBase
      */
     public function main(): array
     {
-        $this->fillPlaylist();
-        $this->parsePlaylist();
+        if (empty($this->playlist))
+        {
+            $this->fillPlaylist();
+        }
+        if (empty($this->decodedPlaylist))
+        {
+            $this->parsePlaylist();
+        }
 
-        if($this->limit > 0)
+        if ($this->limit > 0)
         {
             return array_slice($this->decodedPlaylist, 0, $this->limit);
         }
@@ -86,6 +92,15 @@ class AlAudio extends AlAudioBase
     }
 
     /**
+     * Allow or disallow send raw curl response to debug callback
+     * @param $allow bool
+     */
+    public function allowRawResponceDebug($allow = true): void
+    {
+        $this->allowRawResponceDebug = $allow;
+    }
+
+    /**
      * @param int $offset
      */
     protected function fillPlaylist(int $offset = 0): void
@@ -111,13 +126,29 @@ class AlAudio extends AlAudioBase
 
             $this->playlist = \array_merge($this->playlist, $response->list);
 
-            if(empty($response->hasMore))
+            if (empty($response->hasMore))
             {
                 break;
             }
 
-            $offset = $response->nextOffset;
+            $offset = $response->nextOffset ?? 0;
+
+            $currentLength = $this->offset + $this->limit;
+            print_r($currentLength);
+            if ($currentLength > 0 && $currentLength <= $response->nextOffset)
+            {
+                break;
+            }
         }
+    }
+
+    public function getRawPlaylist()
+    {
+        if (empty($this->playlist))
+        {
+            $this->fillPlaylist();
+        }
+        return $this->playlist;
     }
 
     /**
@@ -126,6 +157,7 @@ class AlAudio extends AlAudioBase
     protected function parsePlaylist(): void
     {
         $_ = [];
+        \is_callable($this->debugCallback) && \call_user_func($this->debugCallback, 'Parse raw playlist', ['playlist' => $this->playlist]);
         foreach ($this->playlist as $item)
         {
             if (empty($item[2]))
